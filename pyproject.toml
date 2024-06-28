@@ -1,0 +1,47 @@
+[project]
+name = "fundus_prepro"
+version = "0.1.0"
+authors = [
+    {name = "Clément Playout", email = "clement.playout@polymtl.ca"}
+]
+license = {file = "LICENSE"}
+keywords = [
+    "PyTorch",
+    "Neural Network",
+    "CNN",
+    "Deep Learning",
+    "Training",
+    "Dataset",
+    "Image",
+    "Configuration",
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "opencv-python-headless",
+    "bokeh",
+]
+
+[project.optional-dependencies]
+dev = ["black[jupyter]", "ruff", "pre-commit"]
+notebooks = ["ipykernel"]
+
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "I", "RUF", "TCH"]
+fixable = ["I", "RUF100", "TCH"]
+fix = true
+ignore = ["E731"]  # Ignore `E731` (`lambda` expression)
+
+[tool.ruff.isort]
+known-first-party = ["nntools"]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["I002"]
