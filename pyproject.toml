@@ -2,7 +2,7 @@
 name = "fundus_prepro"
 version = "0.1.0"
 authors = [
-    {name = "Clément Playout", email = "clement.playout@polymtl.ca"}
+    {name = "Florian BASSET", email = "florian.basset@etudiant.univ-rennes.fr"}
 ]
 license = {file = "LICENSE"}
 keywords = [
@@ -20,6 +20,7 @@ dependencies = [
     "matplotlib",
     "opencv-python-headless",
     "bokeh",
+    "nntools @ git+https://github.com/ClementPla/NNTools@attrs_dataset",
 ]
 
 [project.optional-dependencies]

@@ -4,32 +4,32 @@ from skimage.feature import local_binary_pattern
 from scipy.ndimage import uniform_filter
 from scipy.signal import convolve2d
 
+
 class Preprocessor:
     def __init__(self, image_path):
         self.image = cv2.imread(image_path)/255.0
         self.image = self.image.astype(np.float32)
 
-    
-    def to_hsv(self):
+    def to_hsv(self): 
         return cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
     
     def to_lab(self):
         return cv2.cvtColor(self.image, cv2.COLOR_BGR2LAB)
-    
-    #def to_bgr(self):
+
+    def to_bgr(self):
         if len(self.image.shape) == 3 and self.image.shape[2] == 3:
-            if np.array_equal(self.image, self.to_hsv()):
+            if np.array_equal(self.image, cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)):
                 return cv2.cvtColor(self.image, cv2.COLOR_HSV2BGR)  
-            elif np.array_equal(self.image, self.to_lab()):
+            elif np.array_equal(self.image, cv2.cvtColor(self.image, cv2.COLOR_BGR2LAB)):
                 cv2.cvtColor(self.image, cv2.COLOR_LAB2BGR)
         else :
             return self.image
     
     def apply_operation(self, image, operation, color_space):
         if color_space == 'HSV':
-            image = self.to_hsv()
+            image = self.image.to_hsv()
         elif color_space == 'LAB':
-            image = self.to_lab()
+            image = self.image.to_lab()
 
         if operation == 'CLAHE':
             a = self.apply_clahe(image)
@@ -130,69 +130,72 @@ class Preprocessor:
     def apply_combinaison5(self, image):
         image_bilat = self.apply_bilateral_filter(image)
         return self.apply_tophat(image_bilat)
-
-    def apply_sarki(self, image):
-        image_enhancement = self.apply_sarki_preprocess(image, 10)
-        return image_enhancement 
     
-    def apply_sarki_preprocess(self, image, mu0):
-        hsv_image = self.to_hsv()
+    #modifier en utilisqnt clahe et ensuite illumination_correction
+    def test_sarki(self, image):
+        hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV).astype(np.float32)
         h, s, v = cv2.split(hsv_image)
+        v /= 255.0
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        v_clahe = clahe.apply(v)
+        v_clahe = clahe.apply((v * 255).astype(np.uint8)) 
+        print("v_clahe min:", np.min(v_clahe), "max:", np.max(v_clahe))
         navg = np.mean(v_clahe)
         nCLIP = 3  
-        nCL = nCLIP * navg #elle sert a quoi ?????
-        mu0 = 128  # Intensité moyenne 
-        muL = cv2.blur(v_clahe, (15, 15))  # Intensité locale moyenne
+        nCL = nCLIP * navg #?????
+        mu0 = 0.5  # Intensité que l'on souhaite (ajuster)
+        muL = cv2.blur(v_clahe, (15, 15)) # Intensité locale moyenne
+        print("muL min:", np.min(muL), "max:", np.max(muL))
         # p' = p + mu0 - muL
-        v_processed = np.clip(v_clahe + mu0 - muL, 0, 255)
-        hsv_image_processed = cv2.merge([h, s, v_processed])
-        image_bgr = hsv_image_processed.to_bgr()
+        v_processed = np.clip(v_clahe + mu0 - muL, 0, 1)
+        print("v_processed min:", np.min(v_processed), "max:", np.max(v_processed))
+        v_float32 = v_processed.astype(np.float32)
+        print("v_processed min:", np.min(v_float32), "max:", np.max(v_float32))
+        hsv_image_processed = cv2.merge([h, s, v_float32])
+        image_bgr = cv2.cvtColor(hsv_image_processed.astype(np.uint8), cv2.COLOR_HSV2BGR)
         return image_bgr
+    
+    def apply_sarki(self, image):
+        hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV).astype(np.float32)
+        clahe = self.apply_clahe(hsv_image)
+        mu0 = 0.5  # Intensité que l'on souhaite (ajuster)
+        muL = cv2.blur(clahe, (15, 15)) # Intensité locale moyenne
+        v_processed = np.clip(clahe + mu0 - muL, 0, 1)
+        v_float32 = v_processed.astype(np.float32)
+        image_bgr = cv2.cvtColor(v_float32.astype(np.uint8), cv2.COLOR_HSV2BGR)
+        return {"image": image_bgr}
 
-    def fundus_autocrop(image: np.ndarray, mask=None):
-        r_img = image[:, :, 0]
+    def fundus_roi(image, mask=None):    
+        b,g,r = cv2.split(image)
         threshold = 40
-        _, roi = cv2.threshold(r_img, threshold, 1, cv2.THRESH_BINARY)
-        not_null_pixels = cv2.findNonZero(roi)
+        _, roi = cv2.threshold(r, threshold, 1, cv2.THRESH_BINARY)
         roi = roi.astype(np.uint8)
-    
-        if not_null_pixels is None:
-            return {"image": image, "roi": roi}
-    
-        x_range = (np.min(not_null_pixels[:, :, 0]), np.max(not_null_pixels[:, :, 0]))
-        y_range = (np.min(not_null_pixels[:, :, 1]), np.max(not_null_pixels[:, :, 1]))
-        if mask is not None:
-            if (x_range[0] == x_range[1]) or (y_range[0] == y_range[1]):
-                return {"image": image, "roi": roi, "mask": mask}
-        
-            return {
-                "image": image[y_range[0] : y_range[1], x_range[0] : x_range[1]],
-                "roi": roi[y_range[0] : y_range[1], x_range[0] : x_range[1]],
-                "mask": mask[y_range[0] : y_range[1], x_range[0] : x_range[1]]
-            }
-        else:
-            if (x_range[0] == x_range[1]) or (y_range[0] == y_range[1]):
-                return {"image": image, "roi": roi}
-        
-            return {
-                "image": image[y_range[0] : y_range[1], x_range[0] : x_range[1]],
-                "roi": roi[y_range[0] : y_range[1], x_range[0] : x_range[1]],
-            }
 
-    def apply_seoud(self, image):
-        illumination = self.illumination_equalization(image, diameter=30)
-        denoise = self.denoising(illumination)
-        contrast = self.adaptive_contrast_equalization(denoise)
-        return contrast 
+        white_pixels = np.argwhere(roi == 1)
+
+        x_min , y_min = np.min(white_pixels, axis=0)
+        x_max , y_max = np.max(white_pixels, axis=0)
+
+        diameter_x = x_max - x_min
+        diameter_y = y_max - y_min
+
+        diameter = np.max(diameter_x, diameter_y)
+        print(diameter)
+        return {"roi": roi, "diameter": diameter, "image": image}
+    
+    def apply_seoud(self, image): 
+        data = self.fundus_roi(image)
+        illumination = self.illumination_equalization(**data)
+        denoise = self.denoising(**illumination)
+        contrast = self.adaptive_contrast_equalization(**denoise)
+        normalize = self.apply_intensity_normalization(**contrast)
+        return normalize      
     
     def mean_filter(self, image, kernel_size):
         filtered_image = cv2.blur(image, (kernel_size,kernel_size))
         return filtered_image
     
-    def illumination_equalization(self, image, diameter):
-        kernel_size = diameter
+    def illumination_equalization(self, image, diameter=None, roi=None):
+        kernel_size = diameter/10
         #filtrage de chaque canal
         if image is None:
             print('Error loading the image')
@@ -215,16 +218,16 @@ class Preprocessor:
         #fusion des images
             image_finale = cv2.merge([b_final, g_final, r_final])
             
-            return image_finale
+            return {"image":image_finale}
     
-    def denoising(self, image): 
+    def denoising(self, image, diameter=None): 
         b,g,r = cv2.split(image)
-        kernel_size = 7
+        kernel_size = diameter/360
         b_filtered = self.mean_filter(b,kernel_size)
         g_filtered = self.mean_filter(g,kernel_size)
         r_filtered = self.mean_filter(r,kernel_size)
         denoising_image = cv2.merge([b_filtered, g_filtered, r_filtered])
-        return denoising_image
+        return {"image":denoising_image}
     
     def adaptive_contrast_equalization(self, image): 
         b, g, r = cv2.split(image)
@@ -243,15 +246,11 @@ class Preprocessor:
         convolution_b = cv2.filter2D(b, -1, 1-high_pass_filter)
         convolution_g = cv2.filter2D(g, -1, 1-high_pass_filter)
         convolution_r = cv2.filter2D(r, -1, 1-high_pass_filter)
+        #Gestion des NaN
         epsilon = 1e-7
         image_contrast_b = b + 1/(epsilon +std_b) * convolution_b
         image_contrast_g = g + 1/(epsilon +std_g) * convolution_g
         image_contrast_r = r + 1/(epsilon +std_r)* convolution_r
         image_finale = cv2.merge([image_contrast_b, image_contrast_g, image_contrast_r])
-        return image_finale 
+        return {"image":image_finale} 
     
-
-
-
-
-
