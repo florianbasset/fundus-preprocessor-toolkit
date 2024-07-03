@@ -169,21 +169,19 @@ class Preprocessor:
         threshold = 40
         _, roi = cv2.threshold(r, threshold, 1, cv2.THRESH_BINARY)
         roi = roi.astype(np.uint8)
-
         white_pixels = np.argwhere(roi == 1)
-
-        x_min , y_min = np.min(white_pixels, axis=0)
-        x_max , y_max = np.max(white_pixels, axis=0)
-
+        x_min, y_min = np.min(white_pixels, axis=0)
+        x_max, y_max = np.max(white_pixels, axis=0)
         diameter_x = x_max - x_min
         diameter_y = y_max - y_min
-
-        diameter = np.max(diameter_x, diameter_y)
+        diameter = np.maximum(diameter_x, diameter_y)
         print(diameter)
         return {"roi": roi, "diameter": diameter, "image": image}
     
     def apply_seoud(self, image): 
+        print(type(image)) 
         data = self.fundus_roi(image)
+        print(type(image)) 
         illumination = self.illumination_equalization(**data)
         denoise = self.denoising(**illumination)
         contrast = self.adaptive_contrast_equalization(**denoise)
@@ -192,7 +190,7 @@ class Preprocessor:
     
     def mean_filter(self, image, kernel_size):
         filtered_image = cv2.blur(image, (kernel_size,kernel_size))
-        return filtered_image
+        return {"image":filtered_image}
     
     def illumination_equalization(self, image, diameter=None, roi=None):
         kernel_size = diameter/10
@@ -217,7 +215,6 @@ class Preprocessor:
             r_final = cv2.addWeighted(r,1,r_filtered,-1,mean_r)
         #fusion des images
             image_finale = cv2.merge([b_final, g_final, r_final])
-            
             return {"image":image_finale}
     
     def denoising(self, image, diameter=None): 
