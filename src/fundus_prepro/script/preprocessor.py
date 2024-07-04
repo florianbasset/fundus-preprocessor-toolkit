@@ -235,9 +235,9 @@ class Preprocessor:
         E_x_g = np.mean(g)
         E_x_r = np.mean(r)
         #Ecart-type
-        std_b = E_x2_b - E_x_b
-        std_g = E_x2_g - E_x_g
-        std_r = E_x2_r - E_x_r
+        std_b = np.sqrt(E_x2_b - E_x_b)
+        std_g = np.sqrt(E_x2_g - E_x_g)
+        std_r = np.sqrt(E_x2_r - E_x_r)
         #filtrage image avec 1 - h
         high_pass_filter = np.array([[-1, -1, -1],[-1,  8, -1],[-1, -1, -1]])/9
         convolution_b = cv2.filter2D(b, -1, 1-high_pass_filter)
