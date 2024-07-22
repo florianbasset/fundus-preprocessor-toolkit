@@ -25,7 +25,7 @@ def load_ben_color(image, roi=None):
     final_image = cv2.addWeighted(image_roi, 4, cv2.GaussianBlur(image_roi, (0, 0), sigmaX), -4, 128)
     return {"image": final_image}
 
-def histogram_equalization_METH2(img, roi=None):
+def histogram_equalization_METH1(img, roi=None):
     img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     img_bgr_roi = img_bgr.copy()
     img_bgr_roi[~roi] = 0 
@@ -41,5 +41,5 @@ def histogram_equalization_METH2(img, roi=None):
 def graham_meth2(image):
     data = fundus_roi(image)
     image_ben = load_ben_color(data['image'], data["roi"])
-    final_image = histogram_equalization_METH2(image_ben["image"], data["roi"])
+    final_image = histogram_equalization_METH1(image_ben["image"], data["roi"])
     return {"image": final_image}
