@@ -20,9 +20,9 @@ def fundus_roi(image, mask=None):
     return {"roi": roi, "diameter": diameter, "image": image}
 
 def apply_clahe(image, diameter=None, roi=None):
-    if diameter is None:
-        print('Erreur: Le diamètre est None. Impossible de continuer.')
-        return None
+    #if diameter is None:
+    #    print('Erreur: Le diamètre est None. Impossible de continuer.')
+    #    return None
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     if len(image.shape) == 2:  # Grayscale image
         return {"image": clahe.apply(image), "diameter": diameter}
