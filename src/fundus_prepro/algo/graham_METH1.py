@@ -1,3 +1,5 @@
+# graham_METH1.py
+
 import cv2
 import numpy as np
 
@@ -23,9 +25,9 @@ def load_ben_color(image, roi=None):
     image_roi = image.copy()
     image_roi[~roi] = 0 
     image_roi = cv2.addWeighted(image_roi, 4, cv2.GaussianBlur(image_roi, (0, 0), sigmaX), -4, 128)
-    return {"image": image_roi}
+    return image_roi  # Retourne directement l'image
 
-def histogram_equalization_METH1(img, roi=None):
+def histogram_equalization_METH2(img, roi=None):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray_roi = gray.copy()
     gray_roi[~roi] = 0  
@@ -39,11 +41,10 @@ def histogram_equalization_METH1(img, roi=None):
     equalized_img = cv2.cvtColor(equalized_img, cv2.COLOR_GRAY2BGR)
     equalized_img = cv2.cvtColor(equalized_img, cv2.COLOR_BGR2RGB)
     
-    return {"image": equalized_img}
+    return equalized_img  # Retourne directement l'image
 
 def graham_meth1(image):
     data = fundus_roi(image)
     image_ben = load_ben_color(data["image"], data["roi"])
-    final_image = histogram_equalization_METH1(image_ben["image"], data["roi"])
+    final_image = histogram_equalization_METH2(image_ben, data["roi"])
     return {"image": final_image}
-
