@@ -16,7 +16,7 @@ def clahe_hsv(image, diameter=None, roi=None):
         hsv_planes[2] = clahe.apply(hsv_planes[2])
         return {"image": cv2.cvtColor(cv2.merge(hsv_planes), cv2.COLOR_HSV2RGB), "diameter": diameter}
 
-def sarki(image, diameter=None, roi=None):
+def sarki(image, diameter=None, mask=None):
     data = fundus_roi(image)
     clahe_image = clahe_hsv(**data)
 
@@ -36,5 +36,10 @@ def sarki(image, diameter=None, roi=None):
     hsv_uint8 = (hsv_float * 255).astype(np.uint8)
     final_image = cv2.cvtColor(hsv_uint8, cv2.COLOR_HSV2RGB)
 
+    # Apply ROI mask
+    roi = data["roi"]
+    final_image[~roi] = 0  # Set pixels outside ROI to black
+
     return {"image":final_image}
+
 
