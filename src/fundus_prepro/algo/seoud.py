@@ -1,21 +1,7 @@
 import cv2
 import numpy as np
 
-def fundus_roi(image, mask=None):
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv_image)
-    threshold = 15
-    _, roi = cv2.threshold(v, threshold, 1, cv2.THRESH_BINARY)
-    roi = roi.astype(bool)
-    white_pixels = np.argwhere(roi == 1)
-    if white_pixels.size == 0:
-        return {"roi": roi, "diameter": 0, "image": image}
-    x_min, y_min = np.min(white_pixels, axis=0)
-    x_max, y_max = np.max(white_pixels, axis=0)
-    diameter_x = x_max - x_min
-    diameter_y = y_max - y_min
-    diameter = int(np.maximum(diameter_x, diameter_y))
-    return {"roi": roi, "diameter": diameter, "image": image}
+from fundus_prepro.algo.graham_METH1 import fundus_roi
 
 def local_std(image, size):
     img_sq = cv2.multiply(image.astype(np.float32), image.astype(np.float32))
