@@ -9,7 +9,6 @@ def fundus_roi(image, mask=None):
     roi = roi.astype(bool)
     white_pixels = np.argwhere(roi == 1)
     if white_pixels.size == 0:
-        print("Aucun pixel blanc trouvé dans le masque.")
         return {"roi": roi, "diameter": 0, "image": image}
     x_min, y_min = np.min(white_pixels, axis=0)
     x_max, y_max = np.max(white_pixels, axis=0)
