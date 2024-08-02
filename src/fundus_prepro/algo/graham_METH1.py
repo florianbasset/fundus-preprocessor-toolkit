@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 def fundus_roi(image):
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     h, s, v = cv2.split(hsv_image)
     threshold = 15
     _, roi = cv2.threshold(v, threshold, 1, cv2.THRESH_BINARY)
@@ -27,7 +27,7 @@ def load_ben_color(image, roi=None):
     return image_roi  # Retourne directement l'image
 
 def histogram_equalization_METH2(img, roi=None):
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     gray_roi = gray.copy()
     gray_roi[~roi] = 0  
 
