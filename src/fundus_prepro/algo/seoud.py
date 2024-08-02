@@ -74,7 +74,7 @@ def seoud(image, roi=None, diameter=None):
     cs = cv2.split(output)
     out = []
     for c in cs:
-        c = (std_img * (c - c.mean()) / c.std()) + 127
+        c = (std_img * (c - c.mean()) / c.std()) + 127 + 1e-7
         c = c.clip(mean_img - 3 * std_img, mean_img + 3 * std_img)
         out.append(c)
 
