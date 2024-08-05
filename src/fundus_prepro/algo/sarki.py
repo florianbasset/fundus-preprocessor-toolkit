@@ -36,9 +36,8 @@ def sarki(image, diameter=None, mask=None):
     hsv_uint8 = (hsv_float * 255).astype(np.uint8)
     final_image = cv2.cvtColor(hsv_uint8, cv2.COLOR_HSV2RGB)
 
-    # Apply ROI mask
     roi = data["roi"]
-    final_image[~roi] = 0  # Set pixels outside ROI to black
+    final_image[~roi] = 0  
 
     return {"image":final_image}
 

@@ -13,6 +13,5 @@ def autobalance(image):
         final_image[..., channel_index] = np.clip(image[..., channel_index], bmin, bmax)
         # Normaliser
         final_image[..., channel_index] = ((final_image[..., channel_index] - bmin) / (bmax - bmin) * 255)
-    
     return {'image': final_image}
 
