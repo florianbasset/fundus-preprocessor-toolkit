@@ -42,8 +42,8 @@ def histogram_equalization_METH2(img, roi=None):
     
     return equalized_img  # Retourne directement l'image
 
-def graham_meth1(image):
+def graham_meth1(image, roi=None, diameter=None):
     data = fundus_roi(image)
     image_ben = load_ben_color(data["image"], data["roi"])
     final_image = histogram_equalization_METH2(image_ben, data["roi"])
-    return {"image": final_image}
+    return {"image": final_image, "roi": roi}

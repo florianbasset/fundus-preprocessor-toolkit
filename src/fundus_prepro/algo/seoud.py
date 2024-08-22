@@ -16,8 +16,8 @@ def local_std(image, size):
 
 def seoud(image, roi=None, diameter=None):
     data = fundus_roi(image)
-    roi = data["roi"]
-    roi = roi.astype(np.uint8)
+    #roi = data["roi"]
+    #roi = roi.astype(np.uint8)
     D = data["diameter"]
     roi_bool = roi > 0
 
@@ -65,5 +65,5 @@ def seoud(image, roi=None, diameter=None):
         out.append(c)
 
     output = cv2.merge(out).clip(0, 255).astype(np.uint8)
-    return {"origin_image": image, "image": output * expended_roi}
+    return {"roi": roi, "image": output * expended_roi}
 
